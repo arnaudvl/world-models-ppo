@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Tuple
 
 
 class Decoder(nn.Module):
     """ VAE decoder """
-    def __init__(self, img_channels: int, latent_size: int):
+    def __init__(self, img_channels: int, latent_size: int) -> None:
         super(Decoder, self).__init__()
-        self.latent_size = latent_size
+        self.latent_size = latent_size  # TODO: check if needed
         self.img_channels = img_channels
 
         self.fc1 = nn.Linear(latent_size, 1024)
@@ -16,7 +17,7 @@ class Decoder(nn.Module):
         self.deconv3 = nn.ConvTranspose2d(64, 32, 6, stride=2)
         self.deconv4 = nn.ConvTranspose2d(32, img_channels, 6, stride=2)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = F.relu(self.fc1(x))
         x = x.unsqueeze(-1).unsqueeze(-1)
         x = F.relu(self.deconv1(x))
@@ -28,9 +29,9 @@ class Decoder(nn.Module):
 
 class Encoder(nn.Module):
     """ VAE encoder """
-    def __init__(self, img_channels: int, latent_size: int):
+    def __init__(self, img_channels: int, latent_size: int) -> None:
         super(Encoder, self).__init__()
-        self.latent_size = latent_size
+        self.latent_size = latent_size  # TODO: check if needed
         self.img_channels = img_channels
 
         self.conv1 = nn.Conv2d(img_channels, 32, 4, stride=2)
@@ -41,7 +42,7 @@ class Encoder(nn.Module):
         self.fc_mu = nn.Linear(2*2*256, latent_size)
         self.fc_logsigma = nn.Linear(2*2*256, latent_size)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
@@ -56,16 +57,15 @@ class Encoder(nn.Module):
 
 class VAE(nn.Module):
     """ Variational Autoencoder """
-    def __init__(self, img_channels: int, latent_size: int):
+    def __init__(self, img_channels: int, latent_size: int) -> None:
         super(VAE, self).__init__()
         self.encoder = Encoder(img_channels, latent_size)
         self.decoder = Decoder(img_channels, latent_size)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         mu, logsigma = self.encoder(x)
         sigma = logsigma.exp()
         eps = torch.randn_like(sigma)
         z = eps.mul(sigma).add_(mu)
-
         recon_x = self.decoder(z)
         return recon_x, mu, logsigma
