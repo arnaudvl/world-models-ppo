@@ -28,7 +28,7 @@ class Decoder(nn.Module):
 
 class Encoder(nn.Module):
     """ VAE encoder """
-    def __init__(self, img_channels, latent_size):
+    def __init__(self, img_channels: int, latent_size: int):
         super(Encoder, self).__init__()
         self.latent_size = latent_size
         self.img_channels = img_channels
