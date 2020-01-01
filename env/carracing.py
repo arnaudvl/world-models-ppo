@@ -1,8 +1,30 @@
+import argparse
 import gym
 import numpy as np
+import os
+from typing import Tuple
 
 
-def run_env(n_episode: int = 50, n_step: int = 1000, scale: bool = True):
+def run_env(n_episode: int = 50,
+            n_step: int = 1000,
+            scale: bool = True
+            ) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Carracing environment rollouts.
+
+    Parameters
+    ----------
+    n_episode
+        Number of episodes to run environment.
+    n_step
+        Number of max steps per episode.
+    scale
+        Whether to scale the observations.
+
+    Returns
+    -------
+    Observations and rewards from rollouts
+    """
     obs_store, a_store = [], []
     env = gym.make('CarRacing-v0')
     for _ in range(n_episode):
@@ -27,16 +49,73 @@ def run_env(n_episode: int = 50, n_step: int = 1000, scale: bool = True):
     return obs_store_np, a_store_np
 
 
-def save_run(a: np.ndarray, b: np.ndarray, filepath: str = '../data/carracing'):
+def save_run(a: np.ndarray,
+             b: np.ndarray,
+             filepath: str
+             ) -> None:
+    """
+    Save arrays a and b.
+
+    Parameters
+    ----------
+    a
+        Numpy array.
+    b
+        Numpy array.
+    filepath
+        Path to save to.
+    """
     np.savez_compressed(filepath, a=a, b=b)
 
 
-def run(n_fold: int = 10,
+def run(n_fold_train: int = 10,
+        n_fold_test: int = 1,
         n_episode: int = 50,
         n_step: int = 1000,
         scale: bool = True,
-        filepath: str = '../data/carracing'
-        ):
-    for fold in range(n_fold):
+        filepath: str = './data/'
+        ) -> None:
+    """
+    Run n_fold rollouts of the environment for n_episode episodes per rollout.
+
+    Parameters
+    ----------
+    n_fold_train
+        Number of environment rollout folds saved for training.
+    n_fold_test
+        Number of environment rollout folds saved for testing.
+    n_episode
+        Number of episodes to run environment.
+    n_step
+        Number of max steps per episode.
+    scale
+        Whether to scale the observations.
+    filepath
+        Path to save observations and rewards to.
+    """
+    dir_train = os.path.join(filepath, 'train')
+    if not os.path.isdir(dir_train):
+        os.mkdir(dir_train)
+
+    for fold in range(n_fold_train):
         obs, act = run_env(n_episode, n_step, scale)
-        save_run(obs, act, filepath + '_' + str(fold))
+        save_run(obs, act, os.path.join(dir_train, 'carracing_' + str(fold)))
+
+    dir_test = os.path.join(filepath, 'test')
+    if not os.path.isdir(dir_test):
+        os.mkdir(dir_test)
+
+    for fold in range(n_fold_test):
+        obs, act = run_env(n_episode, n_step, scale)
+        save_run(obs, act, os.path.join(dir_test, 'carracing_' + str(fold)))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Collect carracing env rollouts.")
+    parser.add_argument('--n_fold_train', type=int, default=10)
+    parser.add_argument('--n_fold_test', type=int, default=1)
+    parser.add_argument('--n_episode', type=int, default=50)
+    parser.add_argument('--n_step', type=int, default=1000)
+    parser.add_argument('--filepath', type=str, default='./env/data/')
+    args = parser.parse_args()
+    run(args.n_fold_train, args.n_fold_test, args.n_episode, args.n_step, True, args.filepath)

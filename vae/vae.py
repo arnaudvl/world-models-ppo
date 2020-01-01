@@ -8,9 +8,6 @@ class Decoder(nn.Module):
     """ VAE decoder """
     def __init__(self, img_channels: int, latent_size: int) -> None:
         super(Decoder, self).__init__()
-        self.latent_size = latent_size  # TODO: check if needed
-        self.img_channels = img_channels
-
         self.fc1 = nn.Linear(latent_size, 1024)
         self.deconv1 = nn.ConvTranspose2d(1024, 128, 5, stride=2)
         self.deconv2 = nn.ConvTranspose2d(128, 64, 5, stride=2)
@@ -31,9 +28,6 @@ class Encoder(nn.Module):
     """ VAE encoder """
     def __init__(self, img_channels: int, latent_size: int) -> None:
         super(Encoder, self).__init__()
-        self.latent_size = latent_size  # TODO: check if needed
-        self.img_channels = img_channels
-
         self.conv1 = nn.Conv2d(img_channels, 32, 4, stride=2)
         self.conv2 = nn.Conv2d(32, 64, 4, stride=2)
         self.conv3 = nn.Conv2d(64, 128, 4, stride=2)
@@ -56,7 +50,16 @@ class Encoder(nn.Module):
 
 
 class VAE(nn.Module):
-    """ Variational Autoencoder """
+    """
+    Variational Autoencoder.
+
+    Parameters
+    ----------
+    img_channels
+        Number of channels in the image.
+    latent_size
+        Latent dimension.
+    """
     def __init__(self, img_channels: int, latent_size: int) -> None:
         super(VAE, self).__init__()
         self.encoder = Encoder(img_channels, latent_size)
@@ -67,5 +70,5 @@ class VAE(nn.Module):
         sigma = logsigma.exp()
         eps = torch.randn_like(sigma)
         z = eps.mul(sigma).add_(mu)
-        recon_x = self.decoder(z)
-        return recon_x, mu, logsigma
+        x_recon = self.decoder(z)
+        return x_recon, mu, logsigma
