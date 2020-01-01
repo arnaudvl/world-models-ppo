@@ -5,7 +5,6 @@ import torch
 from torch.optim import Optimizer, Adam
 from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
-from tqdm import tqdm_notebook
 from vae import VAE
 from loaders import GymDataset, collate_fn, generate_obs, save_checkpoint
 from losses import loss_vae
@@ -103,8 +102,7 @@ def run(data_dir: str = './env/data',
         model.eval()
         test_loss = 0
         with torch.no_grad():
-            tq_test = tqdm_notebook(generate_obs(dataloader_test), total=len(dataloader_test), leave=False)
-            for obs, _, _ in tq_test:
+            for obs, _, _ in generate_obs(dataloader_test):
                 obs = torch.stack(obs).to(device)
                 obs_recon, mu, logsigma = model(obs)
                 test_loss += loss_vae(obs_recon, obs, mu, logsigma).item()
@@ -118,17 +116,13 @@ def run(data_dir: str = './env/data',
     cur_best = None
     loss_list = []
 
-    #tq_ep = tqdm_notebook(range(epochs))
-    tq_ep = range(epochs)
-    for epoch in tq_ep:
+    for epoch in range(epochs):
 
         model.train()
         loss_train = 0
         n_batch = 0
 
-        #tq_batch_train = tqdm_notebook(range(n_batch_train))
-        tq_batch_train = range(n_batch_train)
-        for i in tq_batch_train:  # loop over training data for each epoch
+        for i in range(n_batch_train):  # loop over training data for each epoch
 
             dataset_train.load_batch(i)
             dataloader_train = torch.utils.data.DataLoader(dataset_train,
@@ -136,9 +130,7 @@ def run(data_dir: str = './env/data',
                                                            shuffle=True,
                                                            collate_fn=collate_fn)
 
-            #tq_obs = tqdm_notebook(generate_obs(dataloader_train), total=len(dataloader_train), leave=False)
-            tq_obs = generate_obs(dataloader_train)
-            for j, (obs, _, _) in enumerate(tq_obs):
+            for j, (obs, _, _) in enumerate(generate_obs(dataloader_train)):
 
                 n_batch += 1
 
@@ -163,9 +155,6 @@ def run(data_dir: str = './env/data',
                     optimizer.step()
                     optimizer.zero_grad()
 
-                #tq_obs.set_postfix(loss_train=loss_train_avg)
-
-            #tq_batch_train.set_postfix(loss_train=loss_train_avg)
             loss_list.append(loss_train_avg)
 
         # learning rate scheduling
@@ -188,8 +177,6 @@ def run(data_dir: str = './env/data',
             'optimizer': optimizer.state_dict(),
             'scheduler': lr_scheduler.state_dict()
         }, is_best, filename, best_filename)
-
-        #tq_ep.set_postfix(loss_train=loss_train_avg, loss_test=loss_test_avg)
 
 
 if __name__ == '__main__':
