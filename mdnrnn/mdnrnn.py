@@ -54,7 +54,7 @@ def gmm_loss(batch: torch.Tensor,
     return - log_prob
 
 
-class MDRNN(nn.Module):
+class MDNRNN(nn.Module):
     def __init__(self,
                  latents: int,
                  actions: int,

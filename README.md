@@ -8,7 +8,7 @@ First save a number of the *CarRacing-v0* Gym environment rollouts used for the 
 python env/carracing.py --filepath './env/data' ---n_fold_train 10 ---n_fold_test 1
 ```
 
-Then train the [Variational Autoencoder](https://arxiv.org/abs/1312.6114) using the stored rollout:
+Then train the [Variational Autoencoder](https://arxiv.org/abs/1312.6114) (VAE) using the stored rollouts:
 
 ```bash
 python vae/train.py --data_dir './env/data' --model_dir './vae/model' --epochs 20

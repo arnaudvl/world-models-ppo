@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from ..vae import VAE
-from mdrnn import MDRNN, gmm_loss
+from mdnrnn import MDNRNN, gmm_loss
 from utils.loaders import GymDataset, collate_fn, generate_obs, save_checkpoint
 from utils.vars import (H, W, BATCH_SIZE, CHANNELS, LATENT_SIZE, SEQ_LEN,
                         ACTION_SIZE, HIDDEN_SIZE, N_GAUSS, LR, GRAD_ACCUMULATION_STEPS)
@@ -15,11 +15,11 @@ from utils.vars import (H, W, BATCH_SIZE, CHANNELS, LATENT_SIZE, SEQ_LEN,
 
 def run(data_dir: str = './env/data',
         vae_dir: str = './vae/model',
-        mdrnn_dir: str = './mdrnn/model',
+        mdnrnn_dir: str = './mdnrnn/model',
         epochs: int = 20
         ) -> None:
     """
-    Train MDRNN using saved environment rollouts.
+    Train mdnrnn using saved environment rollouts.
 
     Parameters
     ----------
@@ -27,8 +27,8 @@ def run(data_dir: str = './env/data',
         Directory with train and test data.
     vae_dir
         Directory to load VAE model from.
-    mdrnn_dir
-        Directory to optionally load MDRNN model from and save trained model to.
+    mdnrnn_dir
+        Directory to optionally load MDNRNN model from and save trained model to.
     epochs
         Number of training epochs.
     """
@@ -74,30 +74,30 @@ def run(data_dir: str = './env/data',
     vae.load_state_dict(state_vae['state_dict'])
     vae.to(device)
 
-    # set save and optional load directories for the MDRNN model
-    load_mdrnn_file = os.path.join(mdrnn_dir, 'best.tar')
+    # set save and optional load directories for the MDNRNN model
+    load_mdnrnn_file = os.path.join(mdnrnn_dir, 'best.tar')
     try:
-        state_mdrnn = torch.load(load_mdrnn_file)
+        state_mdnrnn = torch.load(load_mdnrnn_file)
     except FileNotFoundError:
-        state_mdrnn = None
+        state_mdnrnn = None
 
-    # define and load MDRNN model
-    mdrnn = MDRNN(LATENT_SIZE, ACTION_SIZE, HIDDEN_SIZE, N_GAUSS, rewards_terminal=False)
-    if state_mdrnn is not None:
-        mdrnn.load_state_dict(state_mdrnn['state_dict'])
-    mdrnn.zero_grad()
-    mdrnn.to(device)
+    # define and load MDNRNN model
+    mdnrnn = MDNRNN(LATENT_SIZE, ACTION_SIZE, HIDDEN_SIZE, N_GAUSS, rewards_terminal=False)
+    if state_mdnrnn is not None:
+        mdnrnn.load_state_dict(state_mdnrnn['state_dict'])
+    mdnrnn.zero_grad()
+    mdnrnn.to(device)
 
     # optimizer
-    params = [p for p in mdrnn.parameters() if p.requires_grad]
+    params = [p for p in mdnrnn.parameters() if p.requires_grad]
     optimizer = RMSprop(params, lr=LR, alpha=.9)
-    if state_mdrnn is not None:
-        optimizer.load_state_dict(state_mdrnn['optimizer'])
+    if state_mdnrnn is not None:
+        optimizer.load_state_dict(state_mdnrnn['optimizer'])
 
     # learning rate scheduling
     lr_scheduler = StepLR(optimizer, step_size=3, gamma=0.1)
-    if state_mdrnn is not None:
-        lr_scheduler.load_state_dict(state_mdrnn['scheduler'])
+    if state_mdnrnn is not None:
+        lr_scheduler.load_state_dict(state_mdnrnn['scheduler'])
 
     # helper function
     def img2latent(obs, batch_size):
@@ -111,7 +111,7 @@ def run(data_dir: str = './env/data',
     # define test fn
     def test():
         """ One test epoch """
-        mdrnn.eval()
+        mdnrnn.eval()
         test_loss = 0
         n_test = len(dataloader_test.dataset)
         with torch.no_grad():
@@ -138,7 +138,7 @@ def run(data_dir: str = './env/data',
                                                        for arr in [latent_obs, action, next_latent_obs]]
 
                 # forward pass model
-                mus, sigmas, logpi = mdrnn(action, latent_obs)
+                mus, sigmas, logpi = mdnrnn(action, latent_obs)
 
                 # compute loss
                 loss = gmm_loss(next_latent_obs, mus, sigmas, logpi)
@@ -155,7 +155,7 @@ def run(data_dir: str = './env/data',
 
     for epoch in range(epochs):
 
-        mdrnn.train()
+        mdnrnn.train()
         loss_train = 0
         n_batch = 0
 
@@ -190,7 +190,7 @@ def run(data_dir: str = './env/data',
                                                        for arr in [latent_obs, action, next_latent_obs]]
 
                 # forward pass model
-                mus, sigmas, logpi = mdrnn(action, latent_obs)
+                mus, sigmas, logpi = mdnrnn(action, latent_obs)
 
                 # compute loss
                 loss = gmm_loss(next_latent_obs, mus, sigmas, logpi)
@@ -212,15 +212,15 @@ def run(data_dir: str = './env/data',
         loss_test_avg = test()
 
         # checkpointing
-        best_filename = os.path.join(mdrnn_dir, 'best.tar')
-        filename = os.path.join(mdrnn_dir, 'checkpoint.tar')
+        best_filename = os.path.join(mdnrnn_dir, 'best.tar')
+        filename = os.path.join(mdnrnn_dir, 'checkpoint.tar')
         is_best = not cur_best or loss_test_avg < cur_best
         if is_best:
             cur_best = loss_test_avg
 
         save_checkpoint({
             'epoch': epoch,
-            'state_dict': mdrnn.state_dict(),
+            'state_dict': mdnrnn.state_dict(),
             'precision': loss_test_avg,
             'optimizer': optimizer.state_dict(),
             'scheduler': lr_scheduler.state_dict()
@@ -228,10 +228,10 @@ def run(data_dir: str = './env/data',
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Train MDRNN on saved Carracing data.")
+    parser = argparse.ArgumentParser(description="Train MDNRNN on saved Carracing data.")
     parser.add_argument('--data_dir', type=str, default='./env/data')
     parser.add_argument('--vae_dir', type=str, default='./vae/model')
-    parser.add_argument('--mdrnn_dir', type=str, default='./mdrnn/model')
+    parser.add_argument('--mdnrnn_dir', type=str, default='./mdnrnn/model')
     parser.add_argument('--epochs', type=int, default=20)
     args = parser.parse_args()
-    run(args.data_dir, args.vae_dir, args.mdrnn_dir, args.epochs)
+    run(args.data_dir, args.vae_dir, args.mdnrnn_dir, args.epochs)
