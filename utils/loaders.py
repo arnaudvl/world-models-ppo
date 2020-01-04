@@ -22,7 +22,7 @@ def generate_obs(iterable):
 
 class GymDataset(object):
     def __init__(self,
-                 filepath: str,
+                 data_dir: str,
                  seq_len: int = 0,
                  transform: callable = None,
                  obs_per_batch: int = int(5e4)) -> None:
@@ -31,7 +31,7 @@ class GymDataset(object):
 
         Arguments
         ---------
-        filepath
+        data_dir
             Directory with saved observations.
         seq_len
             Sequence length of an observation.
@@ -40,17 +40,17 @@ class GymDataset(object):
         obs_per_batch
             Number of observations in a batch of loaded data.
         """
-        self.filepath = filepath
-        self.batch_list = [batch for batch in os.listdir(filepath) if batch.endswith('.npz')]
+        self.data_dir = data_dir
+        self.batch_list = [batch for batch in os.listdir(data_dir) if batch.endswith('.npz')]
         self.seq_len = seq_len
         self.transform = transform
         if obs_per_batch is not None:
             self.obs_per_batch = obs_per_batch
         else:  # load first batch to infer number of observations
-            self.obs_per_batch = np.load(os.path.join(self.filepath, self.batch_list[0]))['b'].shape[0]
+            self.obs_per_batch = np.load(os.path.join(self.data_dir, self.batch_list[0]))['b'].shape[0]
 
     def load_batch(self, i: int) -> None:
-        batch = np.load(os.path.join(self.filepath, self.batch_list[i]))
+        batch = np.load(os.path.join(self.data_dir, self.batch_list[i]))
         self.observation, self.action = batch['a'], batch['b']
 
     def __getitem__(self, i: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

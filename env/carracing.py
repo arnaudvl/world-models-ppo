@@ -51,7 +51,7 @@ def run_env(n_episode: int = 50,
 
 def save_run(a: np.ndarray,
              b: np.ndarray,
-             filepath: str
+             data_dir: str
              ) -> None:
     """
     Save arrays a and b.
@@ -62,10 +62,10 @@ def save_run(a: np.ndarray,
         Numpy array.
     b
         Numpy array.
-    filepath
+    data_dir
         Path to save to.
     """
-    np.savez_compressed(filepath, a=a, b=b)
+    np.savez_compressed(data_dir, a=a, b=b)
 
 
 def run(n_fold_train: int = 10,
@@ -73,7 +73,7 @@ def run(n_fold_train: int = 10,
         n_episode: int = 50,
         n_step: int = 1000,
         scale: bool = True,
-        filepath: str = './data/'
+        data_dir: str = './data/'
         ) -> None:
     """
     Run n_fold rollouts of the environment for n_episode episodes per rollout.
@@ -90,10 +90,10 @@ def run(n_fold_train: int = 10,
         Number of max steps per episode.
     scale
         Whether to scale the observations.
-    filepath
+    data_dir
         Path to save observations and rewards to.
     """
-    dir_train = os.path.join(filepath, 'train')
+    dir_train = os.path.join(data_dir, 'train')
     if not os.path.isdir(dir_train):
         os.mkdir(dir_train)
 
@@ -101,7 +101,7 @@ def run(n_fold_train: int = 10,
         obs, act = run_env(n_episode, n_step, scale)
         save_run(obs, act, os.path.join(dir_train, 'carracing_' + str(fold)))
 
-    dir_test = os.path.join(filepath, 'test')
+    dir_test = os.path.join(data_dir, 'test')
     if not os.path.isdir(dir_test):
         os.mkdir(dir_test)
 
@@ -116,6 +116,6 @@ if __name__ == '__main__':
     parser.add_argument('--n_fold_test', type=int, default=1)
     parser.add_argument('--n_episode', type=int, default=50)
     parser.add_argument('--n_step', type=int, default=1000)
-    parser.add_argument('--filepath', type=str, default='./env/data/')
+    parser.add_argument('--data_dir', type=str, default='./env/data/')
     args = parser.parse_args()
-    run(args.n_fold_train, args.n_fold_test, args.n_episode, args.n_step, True, args.filepath)
+    run(args.n_fold_train, args.n_fold_test, args.n_episode, args.n_step, True, args.data_dir)
