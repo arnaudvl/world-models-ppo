@@ -14,7 +14,7 @@ Then train the [Variational Autoencoder](https://arxiv.org/abs/1312.6114) (VAE) 
 python vae/train.py --data_dir './env/data' --vae_dir './vae/model' --epochs 20
 ```
 
-Using the pretrained VAE, we train the Recurrent Mixture Density Network (MDN-RNN) model to predict the future latent state:
+Using the pretrained VAE, we train the Recurrent [Mixture Density Network](https://publications.aston.ac.uk/id/eprint/373/1/NCRG_94_004.pdf) (MDN-RNN) model to predict the future latent state:
 
 ```bash
 python mdnrnn/train.py --data_dir './env/data' --vae_dir './vae/model' --mdnrnn_dir './mdnrnn/model' --epochs 20

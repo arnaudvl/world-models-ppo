@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as f
+import torch.nn.functional as F
 from torch.distributions.normal import Normal
 from typing import Tuple
 
@@ -126,7 +126,7 @@ class MDNRNN(nn.Module):
 
         pi = gmm_outs[:, :, 2 * stride: 2 * stride + self.gaussians]
         pi = pi.view(seq_len, bs, self.gaussians)
-        logpi = f.log_softmax(pi, dim=-1)
+        logpi = F.log_softmax(pi, dim=-1)
 
         if self.rewards_terminal:
             rs = gmm_outs[:, :, -2]
