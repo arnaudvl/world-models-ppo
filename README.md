@@ -11,5 +11,11 @@ python env/carracing.py --filepath './env/data' ---n_fold_train 10 ---n_fold_tes
 Then train the [Variational Autoencoder](https://arxiv.org/abs/1312.6114) (VAE) using the stored rollouts:
 
 ```bash
-python vae/train.py --data_dir './env/data' --model_dir './vae/model' --epochs 20
+python vae/train.py --data_dir './env/data' --vae_dir './vae/model' --epochs 20
+```
+
+Using the pretrained VAE, we train the Recurrent Mixture Density Network (MDN-RNN) model to predict the future latent state:
+
+```bash
+python mdnrnn/train.py --data_dir './env/data' --vae_dir './vae/model' --mdnrnn_dir './mdnrnn/model' --epochs 20
 ```

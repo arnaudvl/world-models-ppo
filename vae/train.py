@@ -11,7 +11,7 @@ from utils.vars import H, W, BATCH_SIZE, CHANNELS, LATENT_SIZE, LR, GRAD_ACCUMUL
 
 
 def run(data_dir: str = './env/data',
-        model_dir: str = './vae/model',
+        vae_dir: str = './vae/model',
         epochs: int = 20
         ) -> None:
     """
@@ -21,7 +21,7 @@ def run(data_dir: str = './env/data',
     ----------
     data_dir
         Directory with train and test data.
-    model_dir
+    vae_dir
         Directory to optionally load model from and save trained model to.
     epochs
         Number of training epochs.
@@ -63,7 +63,7 @@ def run(data_dir: str = './env/data',
                                                   collate_fn=collate_fn)
 
     # set save and optional load directories
-    load_file = os.path.join(model_dir, 'best.tar')
+    load_file = os.path.join(vae_dir, 'best.tar')
     try:
         state = torch.load(load_file)
     except FileNotFoundError:
@@ -151,8 +151,8 @@ def run(data_dir: str = './env/data',
         loss_test_avg = test()
 
         # checkpointing
-        best_filename = os.path.join(model_dir, 'best.tar')
-        filename = os.path.join(model_dir, 'checkpoint.tar')
+        best_filename = os.path.join(vae_dir, 'best.tar')
+        filename = os.path.join(vae_dir, 'checkpoint.tar')
         is_best = not cur_best or loss_test_avg < cur_best
         if is_best:
             cur_best = loss_test_avg
@@ -169,7 +169,7 @@ def run(data_dir: str = './env/data',
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train VAE on saved Carracing data.")
     parser.add_argument('--data_dir', type=str, default='./env/data')
-    parser.add_argument('--model_dir', type=str, default='./vae/model')
+    parser.add_argument('--vae_dir', type=str, default='./vae/model')
     parser.add_argument('--epochs', type=int, default=20)
     args = parser.parse_args()
-    run(args.data_dir, args.model_dir, args.epochs)
+    run(args.data_dir, args.vae_dir, args.epochs)
