@@ -114,7 +114,6 @@ def run(data_dir: str = './env/data',
     optimizer.zero_grad()
 
     cur_best = None
-    loss_list = []
 
     for epoch in range(epochs):
 
@@ -148,14 +147,11 @@ def run(data_dir: str = './env/data',
 
                 # store loss value
                 loss_train += loss.item()
-                loss_train_avg = loss_train / (n_batch * BATCH_SIZE)
 
                 # apply gradients and learning rate scheduling with optional gradient accumulation
                 if (j + 1) % GRAD_ACCUMULATION_STEPS == 0:
                     optimizer.step()
                     optimizer.zero_grad()
-
-            loss_list.append(loss_train_avg)
 
         # learning rate scheduling
         lr_scheduler.step()
