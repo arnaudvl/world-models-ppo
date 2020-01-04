@@ -2,9 +2,10 @@ import argparse
 import numpy as np
 import os
 import torch
-from torch.optim import Optimizer, Adam
+from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
+from tqdm import tqdm_notebook
 from vae import VAE, loss_vae
 from utils.loaders import GymDataset, collate_fn, generate_obs, save_checkpoint
 from utils.vars import H, W, BATCH_SIZE, CHANNELS, LATENT_SIZE, LR, GRAD_ACCUMULATION_STEPS
@@ -106,13 +107,15 @@ def run(data_dir: str = './env/data',
 
     cur_best = None
 
-    for epoch in range(epochs):
+    tq_episode = tqdm_notebook(range(epochs))
+    for epoch in tq_episode:
 
         model.train()
         loss_train = 0
         n_batch = 0
 
-        for i in range(n_batch_train):  # loop over training data for each epoch
+        tq_batch = tqdm_notebook(range(n_batch_train))
+        for i in tq_batch:  # loop over training data for each epoch
 
             dataset_train.load_batch(i)
             dataloader_train = torch.utils.data.DataLoader(dataset_train,
@@ -120,7 +123,8 @@ def run(data_dir: str = './env/data',
                                                            shuffle=True,
                                                            collate_fn=collate_fn)
 
-            for j, (obs, _, _) in enumerate(generate_obs(dataloader_train)):
+            tq_minibatch = tqdm_notebook(generate_obs(dataloader_train), total=len(dataloader_train), leave=False)
+            for j, (obs, _, _) in enumerate(tq_minibatch):
 
                 n_batch += 1
 
@@ -138,11 +142,16 @@ def run(data_dir: str = './env/data',
 
                 # store loss value
                 loss_train += loss.item()
+                loss_train_avg = loss_train / (n_batch * BATCH_SIZE)
 
                 # apply gradients and learning rate scheduling with optional gradient accumulation
                 if (j + 1) % GRAD_ACCUMULATION_STEPS == 0:
                     optimizer.step()
                     optimizer.zero_grad()
+
+                tq_minibatch.set_postfix(loss_train=loss_train_avg)
+
+            tq_batch.set_postfix(loss_train=loss_train_avg)
 
         # learning rate scheduling
         lr_scheduler.step()
@@ -164,6 +173,8 @@ def run(data_dir: str = './env/data',
             'optimizer': optimizer.state_dict(),
             'scheduler': lr_scheduler.state_dict()
         }, is_best, filename, best_filename)
+
+        tq_episode.set_postfix(loss_train=loss_train_avg, loss_test=loss_test_avg)
 
 
 if __name__ == '__main__':

@@ -78,6 +78,7 @@ class GymDataset(object):
         if self.seq_len > 0:
             next_observation = observation[1:]
             observation = observation[:-1]
+            action = action[:-1]
         else:
             observation = torch.squeeze(observation, dim=0)
             action = torch.squeeze(action, dim=0)
