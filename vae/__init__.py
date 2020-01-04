@@ -1,3 +1,3 @@
-from .vae import VAE
+from .vae import VAE, loss_vae
 
-__all__ = ["VAE"]
+__all__ = ["VAE", "loss_vae"]

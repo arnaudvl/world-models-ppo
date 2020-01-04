@@ -9,21 +9,8 @@ from torchvision import transforms
 from ..vae import VAE
 from mdrnn import MDRNN, gmm_loss
 from utils.loaders import GymDataset, collate_fn, generate_obs, save_checkpoint
-
-
-# TODO: move to global vars file
-# set variables
-H, W = 64, 64
-BATCH_SIZE = 64
-CHANNELS = 3
-LATENT_SIZE = 32
-SEQ_LEN = 3
-ACTION_SIZE = 3
-HIDDEN_SIZE = 256
-N_GAUSS = 5
-
-LR = 1e-3
-GRAD_ACCUMULATION_STEPS = 1
+from utils.vars import (H, W, BATCH_SIZE, CHANNELS, LATENT_SIZE, SEQ_LEN,
+                        ACTION_SIZE, HIDDEN_SIZE, N_GAUSS, LR, GRAD_ACCUMULATION_STEPS)
 
 
 def run(data_dir: str = './env/data',
@@ -165,7 +152,6 @@ def run(data_dir: str = './env/data',
     optimizer.zero_grad()
 
     cur_best = None
-    loss_list = []
 
     for epoch in range(epochs):
 

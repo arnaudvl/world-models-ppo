@@ -5,18 +5,9 @@ import torch
 from torch.optim import Optimizer, Adam
 from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
-from vae import VAE
-from loaders import GymDataset, collate_fn, generate_obs, save_checkpoint
-from losses import loss_vae
-
-
-# set variables
-H, W = 64, 64
-BATCH_SIZE = 64
-CHANNELS = 3
-LATENT_SIZE = 32
-LR = 1e-3
-GRAD_ACCUMULATION_STEPS = 1
+from vae import VAE, loss_vae
+from utils.loaders import GymDataset, collate_fn, generate_obs, save_checkpoint
+from utils.vars import H, W, BATCH_SIZE, CHANNELS, LATENT_SIZE, LR, GRAD_ACCUMULATION_STEPS
 
 
 def run(data_dir: str = './env/data',
