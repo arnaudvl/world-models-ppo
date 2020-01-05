@@ -1,3 +1,3 @@
-from . import env, mdnrnn, vae, utils
+from . import env, mdnrnn, vae, utils, rl
 
-__all__ = ["env", "mdnrnn", "vae", "utils"]
+__all__ = ["env", "mdnrnn", "vae", "utils", "rl"]
