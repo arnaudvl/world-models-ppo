@@ -2,8 +2,8 @@ from gym.spaces import Box, Discrete
 import torch
 import torch.nn as nn
 from typing import Callable, Tuple, Union
-from .agents import WorldModel
-from .policies import GaussianPolicyWM
+from rl.algos.ppo.agents import WorldModel
+from rl.algos.ppo.policies import GaussianPolicyWM
 
 
 class ActorCriticWM(nn.Module):
