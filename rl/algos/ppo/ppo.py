@@ -10,6 +10,7 @@ from rl.algos.ppo.actorcritic import ActorCriticWM
 from rl.utils.logx import EpochLogger
 from rl.utils.mpi_torch import average_gradients, sync_all_params
 from rl.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
+from rl.utils.run_utils import setup_logger_kwargs
 
 
 def count_vars(module):
@@ -359,6 +360,37 @@ def ppo(env_fn: Callable,
         logger.dump_tabular()
 
 
+def run(exp_name: str = 'carracing_ppo',
+        epochs: int = 100,
+        env_name: str = 'CarRacing-v0',
+        num_cpu: int = 1,
+        seed: int = 0) -> None:
+
+    # define num cpu's
+    mpi_fork(num_cpu)
+
+    # setup logger
+    logger_kwargs = setup_logger_kwargs(exp_name, seed)
+
+    # run PPO
+    ppo(lambda: gym.make(env_name),
+        preprocess_kwargs=dict(resize=(64, 64), minmax=(0., 1.)),
+        seed=seed,
+        steps_per_epoch=4000,
+        epochs=epochs,
+        gamma=.99,
+        clip_ratio=.2,
+        pi_lr=3e-4,
+        vf_lr=1e-3,
+        train_pi_iters=80,
+        train_v_iters=80,
+        lam=.97,
+        max_ep_len=1000,
+        target_kl=.01,
+        logger_kwargs=logger_kwargs,
+        save_freq=10)
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -382,7 +414,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     mpi_fork(args.cpu)  # run parallel code with mpi
 
-    from rl.utils.run_utils import setup_logger_kwargs
     logger_kwargs = setup_logger_kwargs(args.exp_name, args.seed)
 
     # run PPO

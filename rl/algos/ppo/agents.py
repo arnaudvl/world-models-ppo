@@ -10,8 +10,8 @@ class WorldModel(nn.Module):
     def __init__(self,
                  action_dim: int,
                  output_dim: int,
-                 vae_path: str = '../../../vae/model/best.tar',
-                 mdnrnn_path: str = '../../../mdnrnn/model/best.tar',
+                 vae_path: str = './vae/model/best.tar',
+                 mdnrnn_path: str = './mdnrnn/model/best.tar',
                  activation: Callable = torch.relu,
                  output_activation: Union[Callable, str] = None,
                  output_squeeze: bool = False) -> None:

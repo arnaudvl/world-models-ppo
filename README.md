@@ -21,3 +21,10 @@ Using the pretrained VAE, we train the Recurrent [Mixture Density Network](https
 from mdnrnn.train import run
 run(data_dir='./env/data', vae_dir='./vae/model', mdnrnn_dir='./mdnrnn/model', epochs=10)
 ```
+
+We can finally train the Controller network which steers the car with PPO:
+
+```python
+from rl.algos.ppo.ppo import run
+run(exp_name='carracing_ppo', epochs=100)
+```
