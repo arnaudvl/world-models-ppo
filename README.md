@@ -1,6 +1,6 @@
 # world-models-ppo
 
-[World Model](https://arxiv.org/abs/1803.10122) implementation with [PPO](https://arxiv.org/abs/1707.06347) in PyTorch. This repository builds on [world-models](https://github.com/ctallec/world-models) for the VAE and MDN-RNN implementations and [firedup](https://github.com/kashif/firedup) for the PPO optimization of the Controller network.
+[World Model](https://arxiv.org/abs/1803.10122) implementation with [PPO](https://arxiv.org/abs/1707.06347) in PyTorch. This repository builds on [world-models](https://github.com/ctallec/world-models) for the VAE and MDN-RNN implementations and [firedup](https://github.com/kashif/firedup) for the PPO optimization of the Controller network. Check the [firedup setup file](https://github.com/kashif/firedup/blob/master/setup.py) for requirements.
 
 First save a number of the *CarRacing-v0* Gym environment rollouts used for the train and test sets in the ```data_dir``` folder:
 
