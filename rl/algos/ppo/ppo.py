@@ -7,11 +7,9 @@ import torch.nn.functional as F
 from typing import Callable
 from rl.algos.ppo.preprocess import preprocess_obs
 from rl.algos.ppo.actorcritic import ActorCriticWM
-
-# TODO: fix imports
-from fireup.utils.logx import EpochLogger
-from fireup.utils.mpi_torch import average_gradients, sync_all_params
-from fireup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
+from rl.utils.logx import EpochLogger
+from rl.utils.mpi_torch import average_gradients, sync_all_params
+from rl.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
 
 
 def count_vars(module):
@@ -368,7 +366,7 @@ if __name__ == '__main__':
     parser.add_argument('--resize', type=int, default=64)
     parser.add_argument('--seed', '-s', type=int, default=0)
     parser.add_argument('--steps_per_epoch', type=int, default=4000)
-    parser.add_argument('--epochs', type=int, default=50)
+    parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--clip_ratio', type=float, default=0.2)
     parser.add_argument('--pi_lr', type=float, default=0.0003)
@@ -382,29 +380,15 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', type=int, default=4)
     parser.add_argument('--exp_name', type=str, default='ppo')
     args = parser.parse_args()
-
     mpi_fork(args.cpu)  # run parallel code with mpi
 
-    # TODO: fix relative imports
-    from fireup.utils.run_utils import setup_logger_kwargs
+    from rl.utils.run_utils import setup_logger_kwargs
     logger_kwargs = setup_logger_kwargs(args.exp_name, args.seed)
-
-    # define agent's architecture
-    cnn_layers = [(3, 8, 3, 2),
-                  (8, 16, 3, 2),
-                  (16, 32, 3, 2)]
-    mlp_layers = [1568, 512, 128]
 
     # run PPO
     ppo(lambda: gym.make(args.env),
         actor_critic=ActorCriticWM,
-
-        ac_kwargs=dict(activation=torch.relu,
-                       output_activation=None,
-                       flatten_type='flatten'),
-        preprocess_kwargs=dict(resize=(args.resize, args.resize),
-                               minmax=(0., 1.)),
-
+        preprocess_kwargs=dict(resize=(args.resize, args.resize), minmax=(0., 1.)),
         seed=args.seed,
         steps_per_epoch=args.steps_per_epoch,
         epochs=args.epochs,
